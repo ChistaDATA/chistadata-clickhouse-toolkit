@@ -1,0 +1,40 @@
+# ChistaDATA ClickHouse Toolkit - Prometheus Alert Rules
+# GPL-3.0 License - Copyright 2026 ChistaDATA Inc.
+groups:
+  - name: clickhouse
+      rules:
+            - alert: ClickHouseDown
+                    expr: up{job="clickhouse"} == 0
+                            for: 1m
+                                    labels: {severity: critical}
+                                            annotations: {summary: ClickHouse is DOWN}
+                                                  - alert: HighMemory
+                                                          expr: clickhouse_asynchronous_metrics_MemoryResident / clickhouse_asynchronous_metrics_OSMemoryTotal > 0.85
+                                                                  for: 5m
+                                                                          labels: {severity: warning}
+                                                                                  annotations: {summary: Memory above 85 percent}
+                                                                                        - alert: DiskLow
+                                                                                                expr: (clickhouse_disks_free_space_in_bytes / clickhouse_disks_total_space_in_bytes) < 0.15
+                                                                                                        for: 5m
+                                                                                                                labels: {severity: critical}
+                                                                                                                        annotations: {summary: Disk below 15 percent free}
+                                                                                                                              - alert: HighPartCount
+                                                                                                                                      expr: max by (database, table) (clickhouse_table_parts_count) > 500
+                                                                                                                                              for: 10m
+                                                                                                                                                      labels: {severity: warning}
+                                                                                                                                                              annotations: {summary: Too many parts in table}
+                                                                                                                                                                    - alert: ReplicationLag
+                                                                                                                                                                            expr: clickhouse_replica_lag > 1000
+                                                                                                                                                                                    for: 5m
+                                                                                                                                                                                            labels: {severity: warning}
+                                                                                                                                                                                                    annotations: {summary: Replication lagging}
+                                                                                                                                                                                                          - alert: FailedQueries
+                                                                                                                                                                                                                  expr: rate(clickhouse_events_FailedQuery[5m]) > 0.5
+                                                                                                                                                                                                                          for: 5m
+                                                                                                                                                                                                                                  labels: {severity: warning}
+                                                                                                                                                                                                                                          annotations: {summary: High query failure rate}
+                                                                                                                                                                                                                                                - alert: MutationStuck
+                                                                                                                                                                                                                                                        expr: clickhouse_table_mutations_in_progress > 0
+                                                                                                                                                                                                                                                                for: 30m
+                                                                                                                                                                                                                                                                        labels: {severity: warning}
+                                                                                                                                                                                                                                                                                annotations: {summary: Mutation stuck for 30 min}
